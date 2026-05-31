@@ -1,0 +1,2 @@
+[console_scripts]
+asa = asa.cli:main

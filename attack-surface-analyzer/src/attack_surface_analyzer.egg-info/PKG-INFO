@@ -1,0 +1,227 @@
+Metadata-Version: 2.4
+Name: attack-surface-analyzer
+Version: 0.1.0
+Summary: Attack surface analyzer for developers — detect secrets, CVEs, misconfigs and exposed endpoints before pushing to prod.
+Author-email: Your Name <you@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/your-username/attack-surface-analyzer
+Project-URL: Repository, https://github.com/your-username/attack-surface-analyzer
+Project-URL: Bug Tracker, https://github.com/your-username/attack-surface-analyzer/issues
+Keywords: security,devsecops,appsec,secrets,cve,sast
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Security
+Classifier: Topic :: Software Development :: Quality Assurance
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: click>=8.0
+Requires-Dist: rich>=13.0
+Requires-Dist: requests>=2.28
+Requires-Dist: tomli>=2.0; python_version < "3.11"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0; extra == "dev"
+Requires-Dist: ruff>=0.4; extra == "dev"
+Requires-Dist: mypy>=1.8; extra == "dev"
+Requires-Dist: types-requests; extra == "dev"
+
+# 🛡️ ASA — Attack Surface Analyzer
+
+> Scan your own repo for secrets, vulnerable dependencies, misconfigurations and exposed endpoints — before you push to prod.
+
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
+![License](https://img.shields.io/badge/License-MIT-green)
+![CI](https://github.com/your-username/attack-surface-analyzer/actions/workflows/ci.yml/badge.svg)
+
+ASA is a developer-focused security CLI that runs locally on your project. No external service, no sign-up, no telemetry. It sits in the niche between DevSecOps tooling and offensive reconnaissance — helping you find what an attacker would find, before they do.
+
+---
+
+## ✨ Features
+
+| Scanner | What it detects |
+|---|---|
+| 📦 **CVE / Dependencies** | Vulnerable packages via [OSV.dev](https://osv.dev) — supports `requirements.txt`, `pyproject.toml`, `Pipfile.lock`, `package.json`, `go.mod` |
+| ⚙️ **Misconfigurations** | Dockerfile pitfalls, docker-compose risks, GitHub Actions supply-chain issues, weak `.env` values, nginx/SSL misconfigs |
+| 🔑 **Hardcoded Secrets** | AWS keys, GitHub tokens, Stripe/Slack/OpenAI API keys, private PEM keys, DB connection strings with credentials, and more |
+| 🌐 **Endpoint Exposure** | Admin/debug routes, CORS wildcards, Flask debug mode, Swagger/GraphQL without auth, docker socket mounts |
+
+---
+
+## 🚀 Quick Start
+
+```bash
+pip install attack-surface-analyzer
+asa .
+```
+
+Or scan a specific project:
+
+```bash
+asa /path/to/my-project
+```
+
+Generate an HTML report:
+
+```bash
+asa . --html report.html
+```
+
+---
+
+## 📸 Output
+
+```
+  ██████╗  ██████╗ █████╗     ███████╗ ██████╗ █████╗ ███╗   ██╗
+  ...
+  ✔ CVE / Dependency Audit  3 finding(s)
+  ✘ Misconfiguration Scan   5 finding(s)
+  ✘ Hardcoded Secrets       2 finding(s)
+  ✔ Endpoint Exposure       0 finding(s)
+
+  ──────────────────── Findings ────────────────────
+
+  📦 CVE / Dependencies  (3)
+
+  [HIGH    ] requests==2.26.0 — GHSA-j8r2-6x86-q33q
+             requirements.txt
+             requests 2.26.0 is vulnerable to SSRF via...
+             → Fix: Upgrade requests to >= 2.31.0
+
+  🔑 Hardcoded Secrets  (2)
+
+  [CRITICAL] AWS Access Key ID — AKIAI***
+             src/config.py:12
+             → Fix: Revoke immediately at AWS IAM console
+
+  ──────────────────── Summary ─────────────────────
+  CRITICAL   2    🔴🔴
+  HIGH       4    🟠🟠🟠🟠
+  MEDIUM     3    🟡🟡🟡
+  LOW        1    🔵
+
+  ╔═══════════════════════════════╗
+  ║ Risk Score: 74/100            ║
+  ║ HIGH RISK — Fix before deploy ║
+  ╚═══════════════════════════════╝
+```
+
+---
+
+## 🛠 CLI Options
+
+```
+Usage: asa [OPTIONS] [PATH]
+
+  Analyze the attack surface of your project before pushing to prod.
+
+Options:
+  --html FILE           Export HTML report to FILE
+  --no-deps             Skip dependency CVE scan
+  --no-configs          Skip misconfiguration scan
+  --no-secrets          Skip hardcoded secrets scan
+  --no-endpoints        Skip endpoint exposure scan
+  --min-severity LEVEL  Minimum severity [low|medium|high|critical] (default: low)
+  -q, --quiet           Only print summary
+  --version             Show version and exit
+  --help                Show this message and exit
+```
+
+---
+
+## ⚙️ CI/CD Integration
+
+ASA exits with code `1` if any HIGH or CRITICAL findings are found — making it easy to fail pipelines.
+
+### GitHub Actions
+
+```yaml
+- name: Run ASA
+  run: |
+    pip install attack-surface-analyzer
+    asa . --min-severity high --html asa-report.html
+
+- name: Upload ASA report
+  uses: actions/upload-artifact@v4
+  with:
+    name: asa-security-report
+    path: asa-report.html
+```
+
+### Pre-commit hook
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: asa
+        name: Attack Surface Analyzer
+        entry: asa
+        args: [--min-severity, high, --no-endpoints]
+        language: python
+        pass_filenames: false
+```
+
+---
+
+## 📦 Supported Ecosystems
+
+| Manifest | Ecosystem | Version detection |
+|---|---|---|
+| `requirements.txt` / `requirements*.txt` | PyPI | ✅ Exact |
+| `pyproject.toml` | PyPI | ✅ Exact |
+| `Pipfile.lock` | PyPI | ✅ Exact |
+| `package-lock.json` | npm | ✅ Exact |
+| `package.json` | npm | ⚠️ Approximate |
+| `go.mod` | Go | ✅ Exact |
+
+---
+
+## 🔒 Privacy
+
+ASA never sends your source code anywhere. The only external call is a batch query to [OSV.dev](https://osv.dev/docs/) with **package names and versions only** — no file contents, no tokens, no paths.
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] SARIF output (GitHub Security tab integration)
+- [ ] `--fix` mode: auto-upgrade vulnerable deps
+- [ ] Ruby Gemfile.lock support
+- [ ] Cargo.lock (Rust) support
+- [ ] `.gitlab-ci.yml` and `Jenkinsfile` rules
+- [ ] Git history scanning (detect secrets committed in the past)
+- [ ] Custom rule support via YAML config
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! The scanner architecture is intentionally modular — adding a new scanner means subclassing `BaseScanner` and implementing `_scan()`.
+
+```bash
+git clone https://github.com/your-username/attack-surface-analyzer
+cd attack-surface-analyzer
+pip install -e ".[dev]"
+pytest
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+
+> Built for developers who want security feedback in their own terminal, not in a SaaS dashboard.
