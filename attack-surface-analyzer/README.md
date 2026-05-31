@@ -4,7 +4,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![CI](https://github.com/your-username/attack-surface-analyzer/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/Faune-Cipher/attack-surface-analyzer/actions/workflows/ci.yml/badge.svg)
 
 ASA is a developer-focused security CLI that runs locally on your project. No external service, no sign-up, no telemetry. It sits in the niche between DevSecOps tooling and offensive reconnaissance — helping you find what an attacker would find, before they do.
 
@@ -174,7 +174,7 @@ ASA never sends your source code anywhere. The only external call is a batch que
 Contributions welcome! The scanner architecture is intentionally modular — adding a new scanner means subclassing `BaseScanner` and implementing `_scan()`.
 
 ```bash
-git clone https://github.com/your-username/attack-surface-analyzer
+git clone https://github.com/Faune-Cipher/attack-surface-analyzer
 cd attack-surface-analyzer
 pip install -e ".[dev]"
 pytest
